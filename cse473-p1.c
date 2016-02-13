@@ -487,7 +487,7 @@ int pt_resolve_addr( unsigned int vaddr, unsigned int *paddr, int *valid, int op
   /* Task #2 */
   unsigned int page = ( vaddr / PAGE_SIZE );
     if(current_pt[page].bits){
-       printf("pt_resolve_addr: hit -- vaddr: 0x%x; paddr: 0x%x",vaddr,*paddr);
+       printf("pt_resolve_addr: hit -- vaddr: 0x%x; paddr: 0x%x\n",vaddr,*paddr);
        memory_accesses++;
        *paddr=current_pt[page].frame;
        *valid=1;
@@ -628,7 +628,9 @@ int pt_alloc_frame( int pid, frame_t *f, ptentry_t *ptentry, int op, int mech )
   /* Task #3 */
   /* initialize page frame */
   f->allocated=1;
+  f->page=ptentry->number;
   ptentry->frame=f->number;
+  // printf("pt_alloc_frame, ptentry->frame=%d, processes[pid].pagetable[f->page]=%d\n",ptentry->frame,processes[pid].pagetable[f->page].frame);
   ptentry->op=op;
   hw_update_pageref(ptentry, op); // update *pentry.bits
   // how to do with *pentry.ct ???

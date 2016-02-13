@@ -95,8 +95,9 @@ int init_mfu( FILE *fp )
 void print_mfu(){
   mfu_entry_t *mfu_ptr=page_list->first;
   int first_access=1;
-  printf("----");
-  while(mfu_ptr->ptentry->frame!=page_list->first->ptentry->frame||first_access){
+  printf("mfu_page_list: ----");
+  // while(mfu_ptr->ptentry->frame!=page_list->first->ptentry->frame||first_access){
+   while(mfu_ptr!=page_list->first||first_access){
     first_access=0;
     printf("frame(%d)\t",mfu_ptr->ptentry->frame);
     mfu_ptr=mfu_ptr->next;
@@ -128,17 +129,18 @@ int replace_mfu( int *pid, frame_t **victim )
     *pid=page_list->first->pid;
     *victim=&physical_mem[page_list->first->ptentry->frame];
     int highest_count=page_list->first->ptentry->ct; // record the use count of the most frequently used frame
-    mfu_entry_t *mfu_ptr=page_list->first->next; // pointer to the list to iterate through it
-    printf("hahaha\n");
+    mfu_entry_t *mfu_ptr=page_list->first; // pointer to the list to iterate through it
     print_mfu();
-    while(mfu_ptr!=page_list->first){
+    int first_access=1;
+    while(mfu_ptr!=page_list->first||first_access){
+      first_access=0;
       if(mfu_ptr->ptentry->ct>highest_count)
       {
         highest_count=mfu_ptr->ptentry->ct;
         *pid=mfu_ptr->pid;
         *victim=&physical_mem[mfu_ptr->ptentry->frame];
       }
-      mfu_ptr=page_list->first->next;
+      mfu_ptr=mfu_ptr->next;
     }
     /* remove from list */
     mfu_ptr->prev->next=mfu_ptr->next;
@@ -166,7 +168,7 @@ int update_mfu( int pid, frame_t *f )
 {
   printf("update_mfu: pid=%d, frame=%d\n",pid,f->number);
   /* Task 3 */
-  ptentry_t* pid_s_pt=processes[pid].pagetable;
+  ptentry_t* pid_s_pt=&processes[pid].pagetable[f->page];
   mfu_entry_t *list_entry=( mfu_entry_t *)malloc(sizeof(mfu_entry_t));
   list_entry->ptentry = pid_s_pt;
   list_entry->pid = pid;
