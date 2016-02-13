@@ -130,22 +130,39 @@ int replace_mfu( int *pid, frame_t **victim )
     *victim=&physical_mem[page_list->first->ptentry->frame];
     int highest_count=page_list->first->ptentry->ct; // record the use count of the most frequently used frame
     mfu_entry_t *mfu_ptr=page_list->first; // pointer to the list to iterate through it
+    mfu_entry_t *victim_ptr=page_list->first; // pointer to the container/mfu_entry corresponds to the victim frame.
     print_mfu();
     int first_access=1;
+    printf("Refered count of each frame: ");
     while(mfu_ptr!=page_list->first||first_access){
       first_access=0;
+      printf("%d\t",mfu_ptr->ptentry->ct);
       if(mfu_ptr->ptentry->ct>highest_count)
       {
         highest_count=mfu_ptr->ptentry->ct;
         *pid=mfu_ptr->pid;
         *victim=&physical_mem[mfu_ptr->ptentry->frame];
+        victim_ptr=mfu_ptr;
       }
       mfu_ptr=mfu_ptr->next;
     }
+    printf("\n");
     /* remove from list */
-    mfu_ptr->prev->next=mfu_ptr->next;
-    mfu_ptr->next->prev=mfu_ptr->prev;
-    free(mfu_ptr);
+    if (victim_ptr==page_list->first && page_list->first->next==page_list->first)
+    {
+      // if the victim frame's mfu_entry is what page_list->first points to and page_list only has one item. reset page_list->first to NULL.
+      page_list->first=NULL;
+    }else{
+      if(victim_ptr==page_list->first){
+      // if the victim frame's mfu_entry is what page_list->first points to and page_list has more than one item. set page_list->first to its next.
+        page_list->first=page_list->first->next;
+      }
+      victim_ptr->prev->next=victim_ptr->next;
+      victim_ptr->next->prev=victim_ptr->prev;
+    }
+    free(victim_ptr);
+    printf("After replacement:  ");
+    print_mfu();
   }
   return 0;
 }
