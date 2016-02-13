@@ -1,13 +1,11 @@
 
 /**********************************************************************
 
-   File          : cse473-p1-second.c
+   File          : cse473-fifo.c
 
-   Description   : This is second chance page replacement algorithm
-                   (see .h for applications)
-                   See http://www.cs.cf.ac.uk/Dave/C/node27.html for info
+   Description   : This is FIFO page replacement algorithm
 
-   By            : Trent Jaeger, Yuquan Shan
+   By            : Trent Jaeger
 
 ***********************************************************************/
 /**********************************************************************
@@ -51,112 +49,93 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Definitions */
 
-/* second chance list */
+/* fifo list */
 
-typedef struct second_entry {  
+typedef struct fifo_entry {  
   int pid;
-  ptentry_t *ptentry;
-  struct second_entry *next;
-  struct second_entry *prev;
-} second_entry_t;
+  frame_t *frame;
+  struct fifo_entry *next;
+} fifo_entry_t;
 
-typedef struct second {
-  second_entry_t *first;
-} second_t;
+typedef struct fifo {
+  fifo_entry_t *first;
+  fifo_entry_t *last;
+} fifo_t;
 
-second_t *page_list;
+fifo_t *frame_list;
 
 /**********************************************************************
 
-    Function    : init_second
-    Description : initialize second-chance list
+    Function    : init_fifo
+    Description : initialize fifo list
     Inputs      : fp - input file of data
     Outputs     : 0 if successful, -1 otherwise
 
 ***********************************************************************/
 
-int init_second( FILE *fp )
+int init_fifo( FILE *fp )
 {
-  printf("initiate second...\n");
-  page_list = (second_t *)malloc(sizeof(second_t));
-  page_list->first = NULL;
+  frame_list = (fifo_t *)malloc(sizeof(fifo_t));
+  
   return 0;
 }
 
 
 /**********************************************************************
 
-    Function    : replace_second
-    Description : choose victim based on second chance algorithm (first with ref == 0)
+    Function    : replace_fifo
+    Description : choose victim from fifo list (first in list is oldest)
     Inputs      : pid - process id of victim frame 
                   victim - frame assigned from fifo -- to be replaced
     Outputs     : 0 if successful, -1 otherwise
 
 ***********************************************************************/
 
-int replace_second( int *pid, frame_t **victim )
+int replace_fifo( int *pid, frame_t **victim )
 {
-  /* Task #3 */
-  if (page_list->first==NULL)
-  {
-    exit(-1);
-  }else{
-    /* return info on victim */
-    second_entry_t *second_ptr=page_list->first; // pointer to the list to iterate through it
-    while(1){
-      if(!second_ptr->ptentry->bits)
-      {
-        *pid=second_ptr->pid;
-        *victim=&physical_mem[second_ptr->ptentry->frame];
-        break;
-      }else{
-        second_ptr->ptentry->bits=0;
-      }
-      second_ptr=second_ptr->next;
-    }
-    /* remove from list */
-    second_ptr->prev->next=second_ptr->next;
-    second_ptr->next->prev=second_ptr->prev;
-    free(second_ptr);
-  }
+  fifo_entry_t *first = frame_list->first;
+
+  /* return info on victim */
+  *victim = first->frame;
+  *pid = first->pid;
+
+  /* remove from list */
+  frame_list->first = first->next;
+  free( first );
+
   return 0;
 }
 
 
 /**********************************************************************
 
-    Function    : update_second
-    Description : update second chance on allocation 
+    Function    : update_fifo
+    Description : update fifo list on allocation (add entry to end)
     Inputs      : pid - process id
                   f - frame
     Outputs     : 0 if successful, -1 otherwise
 
 ***********************************************************************/
 
-int update_second( int pid, frame_t *f )
+int update_fifo( int pid, frame_t *f )
 {
-  /* Task #3 */
-  ptentry_t* pid_s_pt=processes[pid].pagetable;
-  /* put it before the begining (beginning if null) */
-  if(page_list->first==NULL)
-  {
-      second_entry_t temp_second_entry={
-        pid,
-        pid_s_pt,
-        &temp_second_entry,
-        &temp_second_entry,
-      };
-      page_list->first=&temp_second_entry;
-  }else{
-      second_entry_t temp_second_entry={
-        pid,
-        pid_s_pt,
-        page_list->first,
-        page_list->first->prev,
-      };
-      page_list->first->prev->next=&temp_second_entry;
-      page_list->first->prev=&temp_second_entry;
+  /* make new list entry */
+  fifo_entry_t *list_entry = ( fifo_entry_t *)malloc(sizeof(fifo_entry_t));
+  list_entry->frame = f;
+  list_entry->pid = pid;
+  list_entry->next = NULL;
+
+  /* put it at the end of the list (beginning if null) */
+  if ( frame_list->first == NULL ) {
+    frame_list->first = list_entry;
+    frame_list->last = list_entry;
   }
+  /* or really at end */
+  else {
+    frame_list->last->next = list_entry;
+    frame_list->last = list_entry;
+  }
+
   return 0;  
 }
 

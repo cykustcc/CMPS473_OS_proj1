@@ -77,6 +77,7 @@ enh_t *enh_list;
 
 int init_enh( FILE *fp )
 {
+  printf("initiate enh...\n");
   enh_list = (enh_t *)malloc(sizeof(enh_t));
   enh_list->first = NULL;
   return 0;
@@ -96,7 +97,28 @@ int init_enh( FILE *fp )
 int replace_enh( int *pid, frame_t **victim )
 {
   /* Task #3 */
-
+  if (enh_list->first==NULL)
+  {
+    exit(-1);
+  }else{
+    /* return info on victim */
+    enh_entry_t *ehn_ptr=enh_list->first; // pointer to the list to iterate through it
+    while(1){
+      if(!ehn_ptr->ptentry->bits)
+      {
+        *pid=ehn_ptr->pid;
+        *victim=&physical_mem[ehn_ptr->ptentry->frame];
+        break;
+      }else{
+        ehn_ptr->ptentry->bits=0;
+      }
+      ehn_ptr=ehn_ptr->next;
+    }
+    /* remove from list */
+    ehn_ptr->prev->next=ehn_ptr->next;
+    ehn_ptr->next->prev=ehn_ptr->prev;
+    free(ehn_ptr);
+  }
   return 0;
 }
 
@@ -114,7 +136,27 @@ int replace_enh( int *pid, frame_t **victim )
 int update_enh( int pid, frame_t *f )
 {
   /* Task #3 */
-
+  ptentry_t* pid_s_pt=processes[pid].pagetable;
+  if(enh_list->first==NULL)
+  {
+      enh_entry_t temp_enh_entry={
+        pid,
+        pid_s_pt,
+        &temp_enh_entry,
+        &temp_enh_entry,
+      };
+      enh_list->first=&temp_enh_entry;
+  }else{
+      enh_entry_t temp_enh_entry={
+        pid,
+        pid_s_pt,
+        enh_list->first,
+        enh_list->first->prev,
+      };
+      enh_list->first->prev->next=&temp_enh_entry;
+      enh_list->first->prev=&temp_enh_entry;
+  }
+  return 0;
   return 0;  
 }
 

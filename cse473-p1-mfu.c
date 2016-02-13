@@ -75,11 +75,34 @@ mfu_t *page_list;
 
 int init_mfu( FILE *fp )
 {
+  printf("initiate mfu...\n");
   page_list = (mfu_t *)malloc(sizeof(mfu_t));
   page_list->first = NULL;
   return 0;
 }
 
+/**********************************************************************
+
+    Function    : update_mfu
+    Description : create container for the newly allocated frame (and 
+                  associated page), and insert it to the end (with respect
+                  to page_list->first) of page list 
+    Inputs      : pid - process id
+                  f - frame
+    Outputs     : 0 if successful, -1 otherwise
+
+***********************************************************************/
+void print_mfu(){
+  mfu_entry_t *mfu_ptr=page_list->first;
+  int first_access=1;
+  printf("----");
+  while(mfu_ptr->ptentry->frame!=page_list->first->ptentry->frame||first_access){
+    first_access=0;
+    printf("frame(%d)\t",mfu_ptr->ptentry->frame);
+    mfu_ptr=mfu_ptr->next;
+  }
+  printf("----\n");
+}
 
 /**********************************************************************
 
@@ -94,10 +117,37 @@ int init_mfu( FILE *fp )
 
 int replace_mfu( int *pid, frame_t **victim )
 {
+  printf("replace_mfu: pid=%d\n",*pid);
+  // replace the most frequently used page.
   /* Task 3 */
-
+  if (page_list->first==NULL)
+  {
+    exit(-1);
+  }else{
+    /* return info on victim */
+    *pid=page_list->first->pid;
+    *victim=&physical_mem[page_list->first->ptentry->frame];
+    int highest_count=page_list->first->ptentry->ct; // record the use count of the most frequently used frame
+    mfu_entry_t *mfu_ptr=page_list->first->next; // pointer to the list to iterate through it
+    printf("hahaha\n");
+    print_mfu();
+    while(mfu_ptr!=page_list->first){
+      if(mfu_ptr->ptentry->ct>highest_count)
+      {
+        highest_count=mfu_ptr->ptentry->ct;
+        *pid=mfu_ptr->pid;
+        *victim=&physical_mem[mfu_ptr->ptentry->frame];
+      }
+      mfu_ptr=page_list->first->next;
+    }
+    /* remove from list */
+    mfu_ptr->prev->next=mfu_ptr->next;
+    mfu_ptr->next->prev=mfu_ptr->prev;
+    free(mfu_ptr);
+  }
   return 0;
 }
+
 
 
 /**********************************************************************
@@ -114,7 +164,23 @@ int replace_mfu( int *pid, frame_t **victim )
 
 int update_mfu( int pid, frame_t *f )
 {
+  printf("update_mfu: pid=%d, frame=%d\n",pid,f->number);
   /* Task 3 */
-  
+  ptentry_t* pid_s_pt=processes[pid].pagetable;
+  mfu_entry_t *list_entry=( mfu_entry_t *)malloc(sizeof(mfu_entry_t));
+  list_entry->ptentry = pid_s_pt;
+  list_entry->pid = pid;
+  if(page_list->first==NULL)
+  {
+      list_entry->prev=list_entry;
+      list_entry->next=list_entry;
+      page_list->first=list_entry;
+  }else{
+      list_entry->prev=page_list->first->prev;
+      list_entry->next=page_list->first;
+      page_list->first->prev->next=list_entry;
+      page_list->first->prev=list_entry;
+  }
+  print_mfu();
   return 0;
 }
