@@ -213,7 +213,7 @@ int write_results( FILE *out )
   pf_ratio = ( (float)pfs / (float)total_accesses );
   swap_out_ratio = ( (float)swaps / (float)pfs );
   fprintf( out, "Page fault ratio = %f\n", pf_ratio );
-  float eat=(1-pf_ratio)*emat + pf_ratio*(TLB_SEARCH_TIME+2*MEMORY_ACCESS_TIME+( PF_OVERHEAD + SWAP_IN_OVERHEAD + RESTART_OVERHEAD )+swap_out_ratio*SWAP_OUT_OVERHEAD);
+  float eat=(1-pf_ratio)*emat/1000 + pf_ratio*(TLB_SEARCH_TIME/1000+2*MEMORY_ACCESS_TIME/1000+( PF_OVERHEAD + SWAP_IN_OVERHEAD + RESTART_OVERHEAD )+swap_out_ratio*SWAP_OUT_OVERHEAD);
   fprintf( out, "Effective access time = %fms\n",
 	   /* Task #3: ADD THIS COMPUTATION */
 	   eat);
@@ -582,7 +582,7 @@ int pt_invalidate_mapping( int pid, int page )
   printf("pt_invalidate_mapping: hit -- pid: %d; frame: %d\n",pid, current_pt[page].frame);
   invalidates++;
   ptentry_t *current_pt=processes[pid].pagetable;
-  if(current_pt[page].bits==DIRTYBIT){
+  if((current_pt[page].bits&DIRTYBIT)==DIRTYBIT){
     pt_write_frame(&physical_mem[current_pt[page].frame]);
   }
   physical_mem[current_pt[page].frame].allocated=0;
@@ -608,6 +608,7 @@ int pt_invalidate_mapping( int pid, int page )
 int pt_write_frame( frame_t *f )
 {
   /* collect some stats */
+  printf("**pt_write_frame()\n");
   swaps++;
 
   return 0;
