@@ -86,6 +86,25 @@ int init_second( FILE *fp )
 
 /**********************************************************************
 
+    Function    : print_second
+    Description : print the containers
+
+***********************************************************************/
+void print_second(){
+  second_entry_t *second_ptr=page_list->first;
+  int first_access=1;
+  printf("second_page_list: ----");
+  // while(mfu_ptr->ptentry->frame!=page_list->first->ptentry->frame||first_access){
+   while(second_ptr!=page_list->first||first_access){
+    first_access=0;
+    printf("frame(%d)_ref_bits=0x%x\t",second_ptr->ptentry->frame,second_ptr->ptentry->bits);
+    second_ptr=second_ptr->next;
+  }
+  printf("----\n");
+}
+
+/**********************************************************************
+
     Function    : replace_second
     Description : choose victim based on second chance algorithm (first with ref == 0)
     Inputs      : pid - process id of victim frame 
@@ -97,28 +116,26 @@ int init_second( FILE *fp )
 int replace_second( int *pid, frame_t **victim )
 {
   /* Task #3 */
-  if (page_list->first==NULL)
+  print_second();
+  second_entry_t *first = page_list->first;
+
+  /* return info on victim */
+  while((first->ptentry->bits&REFBIT)==REFBIT)
   {
-    exit(-1);
-  }else{
-    /* return info on victim */
-    second_entry_t *second_ptr=page_list->first; // pointer to the list to iterate through it
-    while(1){
-      if(!second_ptr->ptentry->bits)
-      {
-        *pid=second_ptr->pid;
-        *victim=&physical_mem[second_ptr->ptentry->frame];
-        break;
-      }else{
-        second_ptr->ptentry->bits=0;
-      }
-      second_ptr=second_ptr->next;
-    }
-    /* remove from list */
-    second_ptr->prev->next=second_ptr->next;
-    second_ptr->next->prev=second_ptr->prev;
-    free(second_ptr);
+    first->ptentry->bits-=REFBIT;
+    first=first->next;
   }
+  *victim = &physical_mem[first->ptentry->frame];
+  *pid = first->pid;
+
+  /* remove from list */
+  first->prev->next=first->next;
+  first->next->prev=first->prev;
+  page_list->first = first->next;
+  free( first );
+  printf("After replacement:  ");
+  print_second();
+  printf("replace_mfu: pid=%d\n",*pid);
   return 0;
 }
 
@@ -136,28 +153,25 @@ int replace_second( int *pid, frame_t **victim )
 int update_second( int pid, frame_t *f )
 {
   /* Task #3 */
-  ptentry_t* pid_s_pt=processes[pid].pagetable;
-  /* put it before the begining (beginning if null) */
+  printf("update_second: pid=%d, frame=%d\n",pid,f->number);
+  /* Task 3 */
+  ptentry_t* pid_s_pt=&processes[pid].pagetable[f->page];
+  second_entry_t *list_entry=( second_entry_t *)malloc(sizeof(second_entry_t));
+  list_entry->ptentry = pid_s_pt;
+  list_entry->pid = pid;
   if(page_list->first==NULL)
   {
-      second_entry_t temp_second_entry={
-        pid,
-        pid_s_pt,
-        &temp_second_entry,
-        &temp_second_entry,
-      };
-      page_list->first=&temp_second_entry;
+      list_entry->prev=list_entry;
+      list_entry->next=list_entry;
+      page_list->first=list_entry;
   }else{
-      second_entry_t temp_second_entry={
-        pid,
-        pid_s_pt,
-        page_list->first,
-        page_list->first->prev,
-      };
-      page_list->first->prev->next=&temp_second_entry;
-      page_list->first->prev=&temp_second_entry;
+      list_entry->prev=page_list->first->prev;
+      list_entry->next=page_list->first;
+      page_list->first->prev->next=list_entry;
+      page_list->first->prev=list_entry;
   }
-  return 0;  
+  print_second();
+  return 0;
 }
 
 
