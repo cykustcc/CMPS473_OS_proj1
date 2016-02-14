@@ -419,6 +419,7 @@ int tlb_resolve_addr( unsigned int vaddr, unsigned int *paddr, int op )
       if(tlb[i].page==page){
         printf("tlb_resolve_addr: hit -- vaddr: 0x%x; paddr: 0x%x\n",vaddr,*paddr);
         *paddr=tlb[i].frame;
+        current_pt[tlb[i].page].ct++;
         tlb[i].op=op;
         hw_update_pageref( &current_pt[page], op );
         return 1;
@@ -487,13 +488,13 @@ int pt_resolve_addr( unsigned int vaddr, unsigned int *paddr, int *valid, int op
   /* Task #2 */
   unsigned int page = ( vaddr / PAGE_SIZE );
     if(current_pt[page].bits){
-       printf("pt_resolve_addr: hit -- vaddr: 0x%x; paddr: 0x%x\n",vaddr,*paddr);
        memory_accesses++;
-       *paddr=current_pt[page].frame;
+       *paddr = ( current_pt[page].frame * PAGE_SIZE ) + ( vaddr % PAGE_SIZE );
        *valid=1;
        current_pt[page].op=op;
        hw_update_pageref( &current_pt[page], op );
        current_pt[page].ct++;
+       printf("pt_resolve_addr: hit -- vaddr: 0x%x; paddr: 0x%x; frame num: %d;\n",vaddr,*paddr,current_pt[page].frame);
        return 0;
     }
     *valid=0;
@@ -543,7 +544,7 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
     /* global page replacement */
     printf("pt_choose_victim: \n");
     pt_choose_victim[mech]( &other_pid, &f );
-    printf("other-pid: %d", other_pid);
+    printf("other-pid: %d\n", other_pid);
     pt_invalidate_mapping( other_pid, f->page );
     pt_alloc_frame( pid, f, &current_pt[page], 1, mech );  /* alloc for read/write */
     printf("pt_demand_page: replace -- pid: %d; vaddr: 0x%x; victim frame num: %d\n",
@@ -555,7 +556,9 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
 
   /* do hardware update to page */
   hw_update_pageref( &current_pt[page], op );
-  current_pt[page].ct++;
+  // newly allocated frame's ct is 0, and it will print out as 0, only after this step, 
+  // the count is added to 1 for the initial creation's reference. That explains the print out result.
+  current_pt[page].ct++; 
   tlb_update_pageref( f->number, page, op );
   printf("pt_demand_page: addr -- pid: %d; vaddr: 0x%x; paddr: 0x%x\n",
 	   pid, vaddr, *paddr);
