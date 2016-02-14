@@ -83,13 +83,8 @@ int init_mfu( FILE *fp )
 
 /**********************************************************************
 
-    Function    : update_mfu
-    Description : create container for the newly allocated frame (and 
-                  associated page), and insert it to the end (with respect
-                  to page_list->first) of page list 
-    Inputs      : pid - process id
-                  f - frame
-    Outputs     : 0 if successful, -1 otherwise
+    Function    : print_mfu
+    Description : print the containers
 
 ***********************************************************************/
 void print_mfu(){
