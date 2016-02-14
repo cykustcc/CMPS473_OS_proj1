@@ -24,9 +24,9 @@
 typedef struct ptentry {
   int number;
   int frame;
-  int bits;  /* ref, dirty */
+  int bits;  /* ref, dirty */  //refrence bits
   int op;
-  int ct;
+  int ct;   //refered counts
 } ptentry_t;
 
 
