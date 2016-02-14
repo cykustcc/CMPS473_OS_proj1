@@ -99,7 +99,7 @@ void print_mfu(){
   // while(mfu_ptr->ptentry->frame!=page_list->first->ptentry->frame||first_access){
    while(mfu_ptr!=page_list->first||first_access){
     first_access=0;
-    printf("frame(%d)\t",mfu_ptr->ptentry->frame);
+    printf("frame(%d)_ct=%d\t",mfu_ptr->ptentry->frame,mfu_ptr->ptentry->ct);
     mfu_ptr=mfu_ptr->next;
   }
   printf("----\n");
@@ -118,7 +118,6 @@ void print_mfu(){
 
 int replace_mfu( int *pid, frame_t **victim )
 {
-  printf("replace_mfu: pid=%d\n",*pid);
   // replace the most frequently used page.
   /* Task 3 */
   if (page_list->first==NULL)
@@ -133,10 +132,8 @@ int replace_mfu( int *pid, frame_t **victim )
     mfu_entry_t *victim_ptr=page_list->first; // pointer to the container/mfu_entry corresponds to the victim frame.
     print_mfu();
     int first_access=1;
-    printf("Refered count of each frame: ");
     while(mfu_ptr!=page_list->first||first_access){
       first_access=0;
-      printf("%d\t",mfu_ptr->ptentry->ct);
       if(mfu_ptr->ptentry->ct>highest_count)
       {
         highest_count=mfu_ptr->ptentry->ct;
@@ -146,7 +143,6 @@ int replace_mfu( int *pid, frame_t **victim )
       }
       mfu_ptr=mfu_ptr->next;
     }
-    printf("\n");
     /* remove from list */
     if (victim_ptr==page_list->first && page_list->first->next==page_list->first)
     {
@@ -164,6 +160,7 @@ int replace_mfu( int *pid, frame_t **victim )
     printf("After replacement:  ");
     print_mfu();
   }
+  printf("replace_mfu: pid=%d\n",*pid);
   return 0;
 }
 
