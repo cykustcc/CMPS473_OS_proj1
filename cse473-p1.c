@@ -201,7 +201,7 @@ int write_results( FILE *out )
   fprintf( out, "TLB hit rate = %f\n", tlb_hit_ratio );
   float emat=tlb_hit_ratio*(TLB_SEARCH_TIME+MEMORY_ACCESS_TIME)+tlb_miss_ratio*(TLB_SEARCH_TIME+2*MEMORY_ACCESS_TIME);
   fprintf( out, "Effective memory-access time = %fns\n",
-	   /* Task #3: ADD THIS COMPUTATION */ 
+	   /* Task #3: ADD THIS COMPUTATION */
 	   emat);
   //http://stackoverflow.com/questions/18550370/calculate-the-effective-access-time
 
@@ -531,7 +531,7 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
     if ( !physical_mem[i].allocated ) {
       f = &physical_mem[i];
 
-      pt_alloc_frame( pid, f, &current_pt[page], 1, mech );  /* alloc for read/write */
+      pt_alloc_frame( pid, f, &current_pt[page], op, mech );  /* alloc for read/write */
       printf("pt_demand_page: free frame -- pid: %d; vaddr: 0x%x; frame num: %d\n",
 	     pid, vaddr, f->number);
       break;
@@ -546,7 +546,7 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
     pt_choose_victim[mech]( &other_pid, &f );
     printf("other-pid: %d\n", other_pid);
     pt_invalidate_mapping( other_pid, f->page );
-    pt_alloc_frame( pid, f, &current_pt[page], 1, mech );  /* alloc for read/write */
+    pt_alloc_frame( pid, f, &current_pt[page], op, mech );  /* alloc for read/write */
     printf("pt_demand_page: replace -- pid: %d; vaddr: 0x%x; victim frame num: %d\n",
 	   pid, vaddr, f->number);
   }
@@ -556,9 +556,9 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
 
   /* do hardware update to page */
   hw_update_pageref( &current_pt[page], op );
-  // newly allocated frame's ct is 0, and it will print out as 0, only after this step, 
+  // newly allocated frame's ct is 0, and it will print out as 0, only after this step,
   // the count is added to 1 for the initial creation's reference. That explains the print out result.
-  current_pt[page].ct++; 
+  current_pt[page].ct++;
   tlb_update_pageref( f->number, page, op );
   printf("pt_demand_page: addr -- pid: %d; vaddr: 0x%x; paddr: 0x%x\n",
 	   pid, vaddr, *paddr);
