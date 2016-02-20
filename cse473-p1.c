@@ -636,6 +636,7 @@ int pt_alloc_frame( int pid, frame_t *f, ptentry_t *ptentry, int op, int mech )
   ptentry->frame=f->number;
   // printf("pt_alloc_frame, ptentry->frame=%d, processes[pid].pagetable[f->page]=%d\n",ptentry->frame,processes[pid].pagetable[f->page].frame);
   ptentry->op=op;
+  ptentry->bits=VALIDBIT;
   hw_update_pageref(ptentry, op); // update *pentry.bits
   // how to do with *pentry.ct ???
   ptentry->ct=0;
