@@ -417,8 +417,8 @@ int tlb_resolve_addr( unsigned int vaddr, unsigned int *paddr, int op )
   int i;
   for(i=0; i<TLB_ENTRIES; i++){
       if(tlb[i].page==page){
+        *paddr=tlb[i].frame*PAGE_SIZE+vaddr-page*PAGE_SIZE;
         printf("tlb_resolve_addr: hit -- vaddr: 0x%x; paddr: 0x%x\n",vaddr,*paddr);
-        *paddr=tlb[i].frame;
         current_pt[tlb[i].page].ct++;
         tlb[i].op=op;
         hw_update_pageref( &current_pt[page], op );
