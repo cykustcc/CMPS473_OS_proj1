@@ -213,7 +213,7 @@ int write_results( FILE *out )
   pf_ratio = ( (float)pfs / (float)total_accesses );
   swap_out_ratio = ( (float)swaps / (float)pfs );
   fprintf( out, "Page fault ratio = %f\n", pf_ratio );
-  float eat=(1-pf_ratio)*emat/1000 + pf_ratio*(TLB_SEARCH_TIME/1000+2*MEMORY_ACCESS_TIME/1000+( PF_OVERHEAD + SWAP_IN_OVERHEAD + RESTART_OVERHEAD )+swap_out_ratio*SWAP_OUT_OVERHEAD);
+  float eat=(1-pf_ratio)*emat/1000 + pf_ratio*(PF_OVERHEAD + SWAP_IN_OVERHEAD + RESTART_OVERHEAD +swap_out_ratio*SWAP_OUT_OVERHEAD);
   fprintf( out, "Effective access time = %fms\n",
 	   /* Task #3: ADD THIS COMPUTATION */
 	   eat);
