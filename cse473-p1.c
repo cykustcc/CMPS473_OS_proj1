@@ -527,7 +527,7 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
   /* find a free frame */
   /* NOTE: maintain a free frame list */
   for ( i = 0; i < PHYSICAL_FRAMES; i++ ) {
-    printf("check %d frame\n",i);
+    // printf("check %d frame\n",i);
     if ( !physical_mem[i].allocated ) {
       f = &physical_mem[i];
 
@@ -537,14 +537,14 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
       break;
     }
   }
-  printf("Finished checking\n");
+  // printf("Finished checking\n");
 
   /* if no free frame, run page replacement */
   if ( f==NULL ) {
     /* global page replacement */
-    printf("pt_choose_victim: \n");
+    // printf("pt_choose_victim: \n");
     pt_choose_victim[mech]( &other_pid, &f );
-    printf("other-pid: %d\n", other_pid);
+    // printf("other-pid: %d\n", other_pid);
     pt_invalidate_mapping( other_pid, f->page );
     pt_alloc_frame( pid, f, &current_pt[page], op, mech );  /* alloc for read/write */
     printf("pt_demand_page: replace -- pid: %d; vaddr: 0x%x; victim frame num: %d\n",
@@ -579,7 +579,7 @@ int pt_demand_page( int pid, unsigned int vaddr, unsigned int *paddr, int op, in
 int pt_invalidate_mapping( int pid, int page )
 {
   /* Task #3 */
-  printf("pt_invalidate_mapping: hit -- pid: %d; frame: %d\n",pid, current_pt[page].frame);
+  // printf("pt_invalidate_mapping: hit -- pid: %d; frame: %d\n",pid, current_pt[page].frame);
   invalidates++;
   ptentry_t *current_pt=processes[pid].pagetable;
   if((current_pt[page].bits&DIRTYBIT)==DIRTYBIT){
@@ -608,7 +608,7 @@ int pt_invalidate_mapping( int pid, int page )
 int pt_write_frame( frame_t *f )
 {
   /* collect some stats */
-  printf("**pt_write_frame()\n");
+  // printf("**pt_write_frame()\n");
   swaps++;
 
   return 0;

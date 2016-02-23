@@ -116,15 +116,17 @@ void print_second(){
 int replace_second( int *pid, frame_t **victim )
 {
   /* Task #3 */
-  print_second();
+  // print_second();
   second_entry_t *first = page_list->first;
 
   /* return info on victim */
   while((first->ptentry->bits&REFBIT)==REFBIT)
   {
+    printf("replace_second: look at frame %d bits 0x%d\n",first->ptentry->frame,first->ptentry->bits);
     first->ptentry->bits-=REFBIT;
     first=first->next;
   }
+  printf("replace_second: look at frame %d bits 0x%d\n",first->ptentry->frame,first->ptentry->bits);
   *victim = &physical_mem[first->ptentry->frame];
   *pid = first->pid;
 
@@ -133,9 +135,9 @@ int replace_second( int *pid, frame_t **victim )
   first->next->prev=first->prev;
   page_list->first = first->next;
   free( first );
-  printf("After replacement:  ");
-  print_second();
-  printf("replace_mfu: pid=%d\n",*pid);
+  // printf("After replacement:  ");
+  // print_second();
+  // printf("replace_mfu: pid=%d\n",*pid);
   return 0;
 }
 
@@ -153,7 +155,7 @@ int replace_second( int *pid, frame_t **victim )
 int update_second( int pid, frame_t *f )
 {
   /* Task #3 */
-  printf("update_second: pid=%d, frame=%d\n",pid,f->number);
+  // printf("update_second: pid=%d, frame=%d\n",pid,f->number);
   /* Task 3 */
   ptentry_t* pid_s_pt=&processes[pid].pagetable[f->page];
   second_entry_t *list_entry=( second_entry_t *)malloc(sizeof(second_entry_t));
@@ -170,7 +172,7 @@ int update_second( int pid, frame_t *f )
       page_list->first->prev->next=list_entry;
       page_list->first->prev=list_entry;
   }
-  print_second();
+  // print_second();
   return 0;
 }
 

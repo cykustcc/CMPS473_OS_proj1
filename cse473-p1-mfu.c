@@ -125,9 +125,10 @@ int replace_mfu( int *pid, frame_t **victim )
     int highest_count=page_list->first->ptentry->ct; // record the use count of the most frequently used frame
     mfu_entry_t *mfu_ptr=page_list->first; // pointer to the list to iterate through it
     mfu_entry_t *victim_ptr=page_list->first; // pointer to the container/mfu_entry corresponds to the victim frame.
-    print_mfu();
+    // print_mfu();
     int first_access=1;
     while(mfu_ptr!=page_list->first||first_access){
+      printf("replace_mfu: reference counter for page #%d (pid: %d) is %d\n",mfu_ptr->ptentry->number,mfu_ptr->pid,mfu_ptr->ptentry->ct);
       first_access=0;
       if(mfu_ptr->ptentry->ct>highest_count)
       {
@@ -138,6 +139,7 @@ int replace_mfu( int *pid, frame_t **victim )
       }
       mfu_ptr=mfu_ptr->next;
     }
+    printf("replace_mfu: choose frame #%d (associated with page #%d, pid: %d) as the victim\n",victim_ptr->ptentry->frame,victim_ptr->ptentry->number,victim_ptr->pid);
     /* remove from list */
     if (victim_ptr==page_list->first && page_list->first->next==page_list->first)
     {
@@ -152,10 +154,10 @@ int replace_mfu( int *pid, frame_t **victim )
       victim_ptr->next->prev=victim_ptr->prev;
     }
     free(victim_ptr);
-    printf("After replacement:  ");
-    print_mfu();
+    // printf("After replacement:  ");
+    // print_mfu();
   }
-  printf("replace_mfu: pid=%d\n",*pid);
+  // printf("replace_mfu: pid=%d\n",*pid);
   return 0;
 }
 
@@ -175,7 +177,9 @@ int replace_mfu( int *pid, frame_t **victim )
 
 int update_mfu( int pid, frame_t *f )
 {
-  printf("update_mfu: pid=%d, frame=%d\n",pid,f->number);
+  // printf("update_mfu: pid=%d, frame=%d\n",pid,f->number);
+  printf("update_mfu: added new mapping: page#%d --- frame#%d\n",f->page,f->number);
+
   /* Task 3 */
   ptentry_t* pid_s_pt=&processes[pid].pagetable[f->page];
   mfu_entry_t *list_entry=( mfu_entry_t *)malloc(sizeof(mfu_entry_t));
@@ -192,6 +196,6 @@ int update_mfu( int pid, frame_t *f )
       page_list->first->prev->next=list_entry;
       page_list->first->prev=list_entry;
   }
-  print_mfu();
+  // print_mfu();
   return 0;
 }

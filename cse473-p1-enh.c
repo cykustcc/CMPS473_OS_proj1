@@ -102,6 +102,17 @@ void print_enh(){
   printf("----\n");
 }
 
+
+void print_enh2(){
+  enh_entry_t *enh_ptr=enh_list->first;
+  int first_access=1;
+  // while(mfu_ptr->ptentry->frame!=enh_list->first->ptentry->frame||first_access){
+   while(enh_ptr!=enh_list->first||first_access){
+    first_access=0;
+    printf("update_enh: entry: page %d: frame: %d\n",enh_ptr->ptentry->number,enh_ptr->ptentry->frame);
+    enh_ptr=enh_ptr->next;
+  }
+}
 /**********************************************************************
 
     Function    : replace_enh
@@ -115,9 +126,9 @@ void print_enh(){
 int replace_enh( int *pid, frame_t **victim )
 {
   /* Task #3 */
-  print_enh();
+  // print_enh();
   enh_entry_t *first = enh_list->first;
-
+  printf("replace_enh: new starting point: frame: %d\n",first->ptentry->frame);
   /* return info on victim */
   int first_access=1;
   int found_flag=0;
@@ -186,9 +197,9 @@ int replace_enh( int *pid, frame_t **victim )
   first->next->prev=first->prev;
   enh_list->first = first->next;
   free( first );
-  printf("After replacement:  ");
-  print_enh();
-  printf("replace_mfu: pid=%d\n",*pid);
+  // printf("After replacement:  ");
+  // print_enh();
+  // printf("replace_mfu: pid=%d\n",*pid);
   return 0;
 }
 
@@ -206,7 +217,8 @@ int replace_enh( int *pid, frame_t **victim )
 int update_enh( int pid, frame_t *f )
 {
   /* Task #3 */
-  printf("update_enh: pid=%d, frame=%d\n",pid,f->number);
+  // printf("update_enh: pid=%d, frame=%d\n",pid,f->number);
+  printf("update_enh: -- current enh_list\n");
   /* Task 3 */
   ptentry_t* pid_s_pt=&processes[pid].pagetable[f->page];
   enh_entry_t *list_entry=( enh_entry_t *)malloc(sizeof(enh_entry_t));
@@ -223,7 +235,7 @@ int update_enh( int pid, frame_t *f )
       enh_list->first->prev->next=list_entry;
       enh_list->first->prev=list_entry;
   }
-  print_enh();
+  print_enh2();
   return 0; 
 }
 
